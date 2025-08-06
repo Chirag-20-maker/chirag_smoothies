@@ -6,7 +6,8 @@ st.write(
   """Choose Fruit in your Smoothie!.
   """)
 
-session = get_active_session()
+cnx = st.connection("snowflake")
+session = cnx.session()
 
 my_dataframe = session.table("smoothies.public.fruit_options").select(col('Fruit_Name'))
 #st.dataframe(data=my_dataframe, use_container_width=True)
