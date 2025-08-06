@@ -1,51 +1,39 @@
 import streamlit as st
 from snowflake.snowpark.functions import col
 
-st.title(f"My Parents new Healthy diner")
-st.write(
-  """Choose Fruit in your Smoothie!.
-  """
-)
+st.title("My Parents' New Healthy Diner")
+st.write("Choose fruit for your smoothie!")
 
-#session = get_active_session()
-
-name_on_order = st.text_input("Name on Smoothie")
-st.write("The name on your Smoothie will be", name_on_order)
-
-
-#my_dataframe = session.table("smoothies.public.fruit_options").select(col('Fruit_Name'))
-#st.dataframe(data=my_dataframe, use_container_width=True)
-
+# Get Snowflake connection
 cnx = st.connection("Snowflake")
 session = cnx.session()
 
+# Get name for the order
+name_on_order = st.text_input("Name on Smoothie")
+st.write("The name on your Smoothie will be", name_on_order)
+
+# Load fruit options
+fruit_df = session.table("smoothies.public.fruit_options").select(col("Fruit_Name"))
+fruit_list = [row["Fruit_Name"] for row in fruit_df.collect()]
+
+# Fruit selection
 ingredients_list = st.multiselect(
-    "Choose upto 5 ingredients",
-     my_dataframe, 
-    max_selections = 5
+    "Choose up to 5 ingredients",
+    fruit_list,
+    max_selections=5
 )
 
-
+# Process order
 if ingredients_list:
+    ingredients_string = " ".join(ingredients_list)
 
-    ingredients_string = ''
+    my_insert_stmt = f"""
+        INSERT INTO SMOOTHIES.PUBLIC.Orders(ingredients, NAME_ON_ORDER)
+        VALUES ('{ingredients_string}', '{name_on_order}')
+    """
 
-
-    for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen + ' '
-    
-    my_insert_stmt = """ Insert into SMOOTHIES.PUBLIC.Orders(ingredients,NAME_ON_ORDER)
-            values ('""" + ingredients_string + """', '""" + name_on_order + """')"""
-
-    #st.write(my_insert_stmt)
-
-    submitted = st.button('submit')
+    submitted = st.button("Submit")
 
     if submitted:
-        if ingredients_string:
-            session.sql(my_insert_stmt).collect()
-            st.success('Your Smoothie is ordered'  +  name_on_order ,icon="✅")
-    
-
-
-    
+        session.sql(my_insert_stmt).collect()
+        st.success(f"Your Smoothie is ordered, {name_on_order}!", icon="✅")
