@@ -9,8 +9,9 @@ st.write(
 
 #session = get_active_session()
 
-name_on_order = st.text_input("Name on Smoothie:")
-st.write("The name on Smoothie will be", name_on_order)
+name_on_order = st.text_input("Name on Smoothie")
+st.write("The name on your Smoothie will be", name_on_order)
+
 
 my_dataframe = session.table("smoothies.public.fruit_options").select(col('Fruit_Name'))
 #st.dataframe(data=my_dataframe, use_container_width=True)
